@@ -1,0 +1,123 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Ridge, Lasso, ElasticNet
+from sklearn.metrics import r2_score, mean_squared_error
+import numpy as np
+
+# Step 2: Load the Dataset
+# Assuming the dataset is named 'boston_houses.csv'
+df = pd.read_csv('boston_houses.csv')
+
+# Step 3: Preprocess the Data
+# Extracting the 'RM' (number of rooms) as feature and 'Price' as the target variable
+X = df[['total_rooms']].values # Feature
+y = df['median_income'].values # Target
+
+# Step 4: Split the Data into Training and Testing Sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
+random_state=42)
+
+# Step 5: Train the Models
+# Ridge Regression
+ridge_reg = Ridge(alpha=1.0)
+ridge_reg.fit(X_train, y_train)
+
+# Lasso Regression
+lasso_reg = Lasso(alpha=1.0)
+lasso_reg.fit(X_train, y_train)
+
+# ElasticNet Regression
+elastic_net_reg = ElasticNet(alpha=1.0, l1_ratio=0.5)
+elastic_net_reg.fit(X_train, y_train)
+
+# Step 6: Evaluate the Models
+# Predictions on the test set
+y_pred_ridge = ridge_reg.predict(X_test)
+y_pred_lasso = lasso_reg.predict(X_test)
+y_pred_elastic = elastic_net_reg.predict(X_test)
+
+# Calculate R2 score and Mean Squared Error for each model
+ridge_r2 = r2_score(y_test, y_pred_ridge)
+lasso_r2 = r2_score(y_test, y_pred_lasso)
+elastic_r2 = r2_score(y_test, y_pred_elastic)
+ridge_mse = mean_squared_error(y_test, y_pred_ridge)
+lasso_mse = mean_squared_error(y_test, y_pred_lasso)
+elastic_mse = mean_squared_error(y_test, y_pred_elastic)
+print(f"R2 Score of Ridge Regression: {ridge_r2:.4f}, MSE: {ridge_mse:.4f}")
+print(f"R2 Score of Lasso Regression: {lasso_r2:.4f}, MSE: {lasso_mse:.4f}")
+print(f"R2 Score of ElasticNet Regression: {elastic_r2:.4f}, MSE:{elastic_mse:.4f}")
+
+# Step 7: Predict Price for a House with 5 Rooms
+rooms = np.array([[5]]) # Number of rooms is 5
+
+# Predictions
+price_ridge = ridge_reg.predict(rooms)
+price_lasso = lasso_reg.predict(rooms)
+price_elastic = elastic_net_reg.predict(rooms)
+print(f"Predicted Price (Ridge): {price_ridge[0]:.2f}")
+print(f"Predicted Price (Lasso): {price_lasso[0]:.2f}")
+print(f"Predicted Price (ElasticNet): {price_elastic[0]:.2f}")
+
+
+
+
+
+
+
+
+
+
+#q2
+# Import necessary libraries
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the Universal Bank dataset
+# Replace with the local path if needed
+url = "path/to/UniversalBank.csv"
+df = pd.read_csv(url)
+
+# Display the first few rows of the dataset
+print("First few rows of the dataset:")
+print(df.head())
+
+# Step 1: Preprocess the data
+# Drop any unnecessary columns (e.g., ID or account numbers if they exist)
+# For example, dropping 'ID' and 'ZIP Code' columns if they exist in the dataset
+df = df.drop(columns=['ID', 'ZIP Code'], errors='ignore')
+
+# Step 2: Separate features and target variable
+# Assuming `PersonalLoan` is the target column
+X = df.drop(columns=['PersonalLoan'])
+y = df['PersonalLoan']
+
+# Step 3: Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Step 4: Initialize and train the Linear SVM model
+model = SVC(kernel='linear', random_state=42)
+model.fit(X_train, y_train)
+
+# Step 5: Make predictions on the test data
+y_pred = model.predict(X_test)
+
+# Step 6: Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print("Model Performance:")
+print(f"Accuracy: {accuracy * 100:.2f}%")
+
+# Detailed classification report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Confusion Matrix
+conf_matrix = confusion_matrix(y_test, y_pred, labels=[1, 0])
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=['Loan', 'No Loan'], yticklabels=['Loan', 'No Loan'])
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Confusion Matrix for Linear SVM Classifier")
+plt.show()

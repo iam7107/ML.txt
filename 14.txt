@@ -1,0 +1,82 @@
+# Import necessary libraries
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.datasets import mnist
+# 1. Load the MNIST dataset
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+# Display the shape of the dataset
+print(f"Training data shape: {X_train.shape}, Training labels shape: {y_train.shape}")
+print(f"Test data shape: {X_test.shape}, Test labels shape: {y_test.shape}")
+# 2. Preprocess the data
+# Normalize the images to [0, 1] range
+X_train = X_train.astype('float32') / 255
+X_test = X_test.astype('float32') / 255
+# Reshape the data to fit the model (28x28 pixels, 1 color channel)
+X_train = np.expand_dims(X_train, axis=-1)  # (60000, 28, 28, 1)
+X_test = np.expand_dims(X_test, axis=-1)    # (10000, 28, 28, 1)
+# 3. Create the CNN model
+model = keras.Sequential([
+    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
+    layers.MaxPooling2D((2, 2)),
+    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.MaxPooling2D((2, 2)),
+    layers.Flatten(),
+    layers.Dense(64, activation='relu'),
+    layers.Dense(10, activation='softmax')  # 10 classes for digits 0-9
+])
+# 4. Compile the model
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+# 5. Train the model
+model.fit(X_train, y_train, epochs=5, batch_size=32, validation_split=0.1)
+# 6. Evaluate the model
+test_loss, test_accuracy = model.evaluate(X_test, y_test)
+print(f"Test accuracy: {test_accuracy:.4f}")
+# 7. Make predictions
+def predict_digit(image):
+    image = np.expand_dims(image, axis=0)  # Expand dimensions to match model input
+    image = np.expand_dims(image, axis=-1)  # Add channel dimension
+    prediction = model.predict(image)
+    return np.argmax(prediction)  # Return the digit with the highest predicted probability
+# 8. Test the model with a sample image
+sample_index = 0  # Change this index to test different images
+sample_image = X_test[sample_index]
+
+# Display the image
+plt.imshow(sample_image.squeeze(), cmap='gray')
+plt.title(f"Predicted digit: {predict_digit(sample_image)}")
+plt.axis('off')
+plt.show()
+
+
+
+
+
+
+
+#q2
+import pandas as pd
+
+# Creating a sample dataset with some null values
+data = {
+    'Name': ['Alice', 'Bob', 'Charlie', None, 'Eve'],
+    'Age': [24, None, 22, 29, None],
+    'City': ['New York', 'Los Angeles', None, 'Chicago', 'Houston']
+}
+
+# Convert the dictionary to a DataFrame
+df = pd.DataFrame(data)
+print("Original Dataset:")
+print(df)
+
+# Finding null values in the dataset
+null_values = df.isnull()
+print("\nNull Values in Dataset:")
+print(null_values)
+
+# Removing rows with null values
+df_cleaned = df.dropna()
+print("\nDataset after Removing Null Values:")
+print(df_cleaned)

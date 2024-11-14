@@ -1,0 +1,76 @@
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+# 1. Load the dataset
+data = pd.read_csv('GOOG.csv')
+
+# Display the first few rows of the dataset
+print(data.head())
+
+# 2. Preprocess the data
+# Use the 'Close' prices for prediction
+data['Close'] = data['Close'].astype(float)
+
+# Create the target variable: 1 if price increases the next day, else 0
+data['Target'] = (data['Close'].shift(-1) > data['Close']).astype(int)
+data.dropna(inplace=True)  # Drop the last row with NaN target
+
+# Normalize the 'Close' prices
+scaler = MinMaxScaler(feature_range=(0, 1))
+data['Close'] = scaler.fit_transform(data['Close'].values.reshape(-1, 1))
+
+# Prepare the data for RNN
+X = []
+y = []
+
+# Create sequences of 60 days and the target
+for i in range(60, len(data)):
+    X.append(data['Close'].values[i-60:i])  # Previous 60 days
+    y.append(data['Target'].values[i])  # Target variable
+
+X, y = np.array(X), np.array(y)
+
+# 3. Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Reshape the input data to be 3D [samples, time steps, features]
+X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
+X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+
+# 4. Create the RNN model
+model = keras.Sequential([
+    layers.SimpleRNN(50, return_sequences=True, input_shape=(X_train.shape[1], 1)),
+    layers.SimpleRNN(50),
+    layers.Dense(1, activation='sigmoid')  # Output layer for binary classification
+])
+
+# 5. Compile the model
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# 6. Train the model
+model.fit(X_train, y_train, epochs=50, batch_size=32, validation_split=0.1)
+
+# 7. Evaluate the model
+test_loss, test_accuracy = model.evaluate(X_test, y_test)
+print(f"Test accuracy: {test_accuracy:.4f}")
+
+# 8. Make predictions
+y_pred = (model.predict(X_test) > 0.5).astype(int)
+
+# 9. Analyze the results
+# Plotting predictions vs actual values
+plt.figure(figsize=(14, 7))
+plt.plot(y_test, color='red', label='Actual Trend')
+plt.plot(y_pred, color='blue', label='Predicted Trend')
+plt.title('Google Stock Price Prediction')
+plt.xlabel('Days')
+plt.ylabel('Trend')
+plt.legend()
+plt.show()

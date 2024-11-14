@@ -1,0 +1,117 @@
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report, accuracy_score
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+# 1. Load the dataset
+# Replace 'groceries.csv' with the path to your grocery dataset file
+data = pd.read_csv('housing_prices.csv')
+
+# Display the first few rows of the dataset
+print("First few rows of the dataset:")
+print(data.head())
+
+# 2. Preprocess the Data
+# Create the target variable (1 for above average, 0 for below average)
+average_price = data['Sale_Price'].mean()
+data['price_category'] = np.where(data['Sale_Price'] > average_price, 1, 0)  # 1 for above average, 0 for below average
+
+# Features and target variable
+X = data.drop(['Sale_Price', 'price_category'], axis=1)  # Drop the Sale_Price and target column
+y = data['price_category']
+
+# Convert categorical variables to dummy/indicator variables if necessary
+X = pd.get_dummies(X)
+
+# 3. Split the Data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 4. Scale the features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# 5. Create the ANN
+input_dim = X_train.shape[1]  # Number of features
+model = keras.Sequential([
+    layers.Dense(64, activation='relu', input_shape=(input_dim,)),  # First layer with ReLU activation
+    layers.Dense(32, activation='relu'),  # Second layer with ReLU activation
+    layers.Dense(1, activation='sigmoid')  # Output layer with Sigmoid activation
+])
+
+# 6. Compile the model
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# 7. Train the model
+model.fit(X_train, y_train, epochs=40, batch_size=32, verbose=1)
+
+# 8. Evaluate the model
+y_pred = (model.predict(X_test) > 0.5).astype("int32")  # Predictions
+print("\nAccuracy:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+
+
+
+
+
+
+
+#q2
+# Import necessary libraries
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler
+
+# Load the dataset (Replace with the path to your dataset)
+url = "https://raw.githubusercontent.com/selva86/datasets/master/BostonHousing.csv"
+data = pd.read_csv(url)
+
+# Display the first few rows of the dataset
+print("First few rows of the dataset:")
+print(data.head())
+
+# Step 1: Preprocessing - Check for null values
+print("\nChecking for null values in each column:")
+print(data.isnull().sum())
+
+# Step 2: Features and Target Variables
+# Features (predictors)
+X = data.drop('medv', axis=1)  # 'medv' is the target (house price)
+
+# Target (House Price)
+y = data['medv']
+
+# Step 3: Split the data into training and testing sets (80% training, 20% testing)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 4: Standardize the features (important for some models but not strictly necessary for linear regression)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Step 5: Train the Multiple Linear Regression model
+model = LinearRegression()
+model.fit(X_train_scaled, y_train)
+
+# Step 6: Make predictions on the test data
+y_pred = model.predict(X_test_scaled)
+
+# Step 7: Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+print("\nModel Performance:")
+print(f"Mean Squared Error: {mse}")
+print(f"R^2 Score: {r2}")
+
+# Step 8: Display the predicted vs actual values
+results = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
+print("\nPredicted vs Actual values:")
+print(results.head())

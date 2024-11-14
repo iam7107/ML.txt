@@ -1,0 +1,112 @@
+#Q1
+import numpy as np
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report
+
+# Step 1: Load the 20 Newsgroups dataset
+newsgroups = fetch_20newsgroups(subset='all')  # 'all' loads both training and testing data
+X = newsgroups.data  # Text data
+y = newsgroups.target  # Labels
+
+# Step 2: Preprocess the data - Convert text into TF-IDF vectors
+vectorizer = TfidfVectorizer(stop_words='english', max_features=10000)
+X_tfidf = vectorizer.fit_transform(X)
+
+# Step 3: Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X_tfidf, y, test_size=0.3, random_state=42)
+
+# Step 4: Train the Multinomial Naive Bayes model
+model = MultinomialNB()
+model.fit(X_train, y_train)
+
+# Step 5: Predict the categories for the test set
+y_pred = model.predict(X_test)
+
+# Step 6: Evaluate the model's performance
+print(f'Accuracy: {accuracy_score(y_test, y_pred):.4f}')
+print('Classification Report:')
+print(classification_report(y_test, y_pred, target_names=newsgroups.target_names))
+
+# Step 7: Predict the category of a new news text
+def predict_category(news_text):
+    news_tfidf = vectorizer.transform([news_text])  # Transform the new text into TF-IDF
+    predicted_category = model.predict(news_tfidf)  # Predict the category
+    return newsgroups.target_names[predicted_category[0]]  # Return the category name
+
+# Example: Predicting the category of a new news text
+new_news = """NASA is planning a mission to Mars to explore its surface. The rover will gather data on the planet's geology and climate to understand its potential for supporting life."""
+category = predict_category(new_news)
+print(f'Predicted Category for the news text: {category}')
+
+
+
+
+
+
+
+
+#Q2
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
+df = pd.read_csv('iris.csv')
+df
+print(df.head())
+
+# Step 3: Assuming the last column contains the flower types (target variable), separate features and target
+
+# The last column will be the target (flower type), and the other columns are features
+X = df.iloc[:, :-1].values  # Features: all columns except the last one
+y = df.iloc[:, -1].values   # Target: last column (flower type)
+
+# Step 4: Split the dataset into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 5: Normalize the data (important for SVMs)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Step 6: Train SVM with different kernels and calculate accuracy
+kernels = ['linear', 'poly', 'rbf']
+accuracies = {}
+
+for kernel in kernels:
+    # Initialize and train the SVM model
+    svm = SVC(kernel=kernel, random_state=42)
+    svm.fit(X_train_scaled, y_train)
+    
+    # Make predictions on the test set
+    y_pred = svm.predict(X_test_scaled)
+    
+    # Calculate accuracy
+    accuracy = accuracy_score(y_test, y_pred)
+    accuracies[kernel] = accuracy
+    print(f"Accuracy of SVM with {kernel} kernel: {accuracy:.4f}")
+def predict_flower_type(sepal_length, sepal_width, petal_length, petal_width, kernel='rbf'):
+
+    # Transform the input data to match the trained model
+    input_data = np.array([[sepal_length, sepal_width, petal_length, petal_width]])
+    input_data_scaled = scaler.transform(input_data)
+    
+    # Train the SVM with the specified kernel
+    svm = SVC(kernel=kernel, random_state=42)
+    svm.fit(X_train_scaled, y_train)
+    
+    # Predict the flower type
+    prediction = svm.predict(input_data_scaled)
+    
+    # Return the predicted flower type directly (class label from SVM)
+    return prediction[0]  # The prediction directly gives the class label (Setosa, Versicolor, or Virginica)
+
+# Example: Predict flower type for a new data point
+new_flower_data = [5.1, 3.5, 1.4, 0.2]  # Example: [sepal length, sepal width, petal length, petal width]
+predicted_flower = predict_flower_type(*new_flower_data, kernel='rbf')
+print(f"The predicted flower type for the given input is: {predicted_flower}")
+

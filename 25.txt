@@ -1,0 +1,168 @@
+#Q1
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Step 1: Generate a synthetic dataset (Replace with your actual dataset)
+# Example: Let's assume the dataset has a feature 'Size' (in sqft) and 'Price' (in USD)
+data = {
+    'Size': [500, 700, 1200, 1500, 1800, 2200, 2500, 3000, 3500, 4000],
+    'Price': [100000, 150000, 200000, 220000, 240000, 280000, 300000, 350000, 400000, 450000]
+}
+df = pd.DataFrame(data)
+df
+
+# Step 2: Split the data into features (X) and target (y)
+X = df[['Size']].values  # Feature: Size of the house
+y = df['Price'].values  # Target: Price of the house
+
+# Step 3: Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 4: Initialize the Linear Regression model
+linear_regressor = LinearRegression()
+
+# Step 5: Fit Linear Regression model on the training data
+linear_regressor.fit(X_train, y_train)
+
+# Step 6: Predict house prices using the Linear Regression model
+y_pred_linear = linear_regressor.predict(X_test)
+
+# Step 7: Evaluate the Linear Regression model
+print(f"Linear Regression R-squared: {r2_score(y_test, y_pred_linear):.2f}")
+print(f"Linear Regression Mean Squared Error: {mean_squared_error(y_test, y_pred_linear):.2f}")
+
+# Step 8: Polynomial Regression
+# Transform the feature 'Size' to include polynomial features
+poly = PolynomialFeatures(degree=4)
+X_poly = poly.fit_transform(X)
+
+# Step 9: Fit Polynomial Regression model on the whole dataset
+poly_regressor = LinearRegression()
+poly_regressor.fit(X_poly, y)
+
+# Step 10: Predict using the Polynomial Regression model
+y_pred_poly = poly_regressor.predict(poly.transform(X_test))
+
+# Step 11: Evaluate the Polynomial Regression model
+print(f"Polynomial Regression R-squared: {r2_score(y_test, y_pred_poly):.2f}")
+print(f"Polynomial Regression Mean Squared Error: {mean_squared_error(y_test, y_pred_poly):.2f}")
+
+# Step 12: Visualize the Linear Regression results
+plt.scatter(X, y, color='blue')  # Actual points
+plt.plot(X, linear_regressor.predict(X), color='red')  # Linear regression line
+plt.title('Linear Regression: House Price vs Size')
+plt.xlabel('Size (sqft)')
+plt.ylabel('Price (USD)')
+plt.show()
+
+# Step 13: Visualize the Polynomial Regression results (for better fitting)
+X_grid = np.arange(min(X), max(X), 0.1)  # Smoother curve for visualization
+X_grid = X_grid.reshape((len(X_grid), 1))
+plt.scatter(X, y, color='blue')  # Actual points
+plt.plot(X_grid, poly_regressor.predict(poly.transform(X_grid)), color='green')  # Polynomial regression curve
+plt.title('Polynomial Regression: House Price vs Size')
+plt.xlabel('Size (sqft)')
+plt.ylabel('Price (USD)')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+#Q
+import numpy as np
+ 
+# Sigmoid activation function
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+# ReLU activation function
+def relu(x):
+    return np.maximum(0, x)
+
+# Derivative of sigmoid function
+def sigmoid_derivative(x):
+    return x * (1 - x)
+
+# Derivative of ReLU function
+def relu_derivative(x):
+    return np.where(x > 0, 1, 0)
+
+# Initialize the weights and biases as global variables
+input_layer_size = 3  # Input features
+hidden_layer_size = 4  # Number of neurons in hidden layer
+output_layer_size = 1  # Single output (binary classification)
+
+# Initialize weights and biases
+np.random.seed(42)
+weights_input_hidden = np.random.randn(input_layer_size, hidden_layer_size)  # weights from input to hidden layer
+weights_hidden_output = np.random.randn(hidden_layer_size, output_layer_size)  # weights from hidden to output layer
+bias_hidden = np.zeros((1, hidden_layer_size))  # bias for hidden layer
+bias_output = np.zeros((1, output_layer_size))  # bias for output layer
+
+# Forward pass
+def forward_pass(X):
+    hidden_layer_input = np.dot(X, weights_input_hidden) + bias_hidden
+    hidden_layer_output = relu(hidden_layer_input)
+    output_layer_input = np.dot(hidden_layer_output, weights_hidden_output) + bias_output
+    output_layer_output = sigmoid(output_layer_input)
+    return hidden_layer_output, output_layer_output
+
+# Backpropagation and weight update
+def backward_pass(X, y, hidden_layer_output, output_layer_output, learning_rate=0.1):
+    global weights_input_hidden, weights_hidden_output, bias_hidden, bias_output
+
+    # Calculate the error at the output layer
+    output_error = y - output_layer_output
+    output_delta = output_error * sigmoid_derivative(output_layer_output)
+    
+    # Calculate error at the hidden layer
+    hidden_error = output_delta.dot(weights_hidden_output.T)
+    hidden_delta = hidden_error * relu_derivative(hidden_layer_output)
+    
+    # Update weights and biases using gradient descent
+    weights_hidden_output += hidden_layer_output.T.dot(output_delta) * learning_rate
+    weights_input_hidden += X.T.dot(hidden_delta) * learning_rate
+    bias_output += np.sum(output_delta, axis=0, keepdims=True) * learning_rate
+    bias_hidden += np.sum(hidden_delta, axis=0, keepdims=True) * learning_rate
+
+# Training the neural network
+def train(X, y, epochs=10000):
+    for epoch in range(epochs):
+
+        # Forward pass
+        hidden_layer_output, output_layer_output = forward_pass(X)
+        
+        # Backpropagation
+        backward_pass(X, y, hidden_layer_output, output_layer_output)
+
+        if epoch % 1000 == 0:
+            # Print the error every 1000 epochs
+            loss = np.mean(np.square(y - output_layer_output))  # Mean Squared Error
+            print(f'Epoch {epoch}, Loss: {loss}')
+
+# Example dataset (input features and labels)
+X = np.array([[0, 0, 1],
+              [1, 0, 1],
+              [0, 1, 1],
+              [1, 1, 1]])  # Input features (e.g., 3 binary features)
+y = np.array([[0], [1], [1], [0]])  # Output labels (XOR problem)
+
+# Train the neural network
+train(X, y)
+
+# Test the trained network
+hidden_layer_output, output_layer_output = forward_pass(X)
+print("\nFinal output after training:")
+print(output_layer_output)
+

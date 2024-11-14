@@ -1,0 +1,117 @@
+#Q1
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+# Step 1: Load the dataset
+df = pd.read_csv('diabetes.csv')  # Load your dataset
+df
+
+# Step 2: Explore the dataset
+print(df.head())  # Preview the dataset
+
+# Step 3: Preprocess the data
+# Replace any zeros with NaN in certain columns where zero values might be invalid (e.g., blood pressure, glucose, etc.)
+df['Glucose'] = df['Glucose'].replace(0, np.nan)
+df['BloodPressure'] = df['BloodPressure'].replace(0, np.nan)
+df['SkinThickness'] = df['SkinThickness'].replace(0, np.nan)
+df['Insulin'] = df['Insulin'].replace(0, np.nan)
+df['BMI'] = df['BMI'].replace(0, np.nan)
+
+# Fill missing values with the median of each column
+df.fillna(df.median(), inplace=True)
+
+# Step 4: Split the data into features and labels
+X = df.drop('Outcome', axis=1)  # Features
+y = df['Outcome']  # Labels
+
+# Step 5: Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Step 6: Normalize the features (standardize them)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Step 7: Use GridSearchCV to find the optimal value of K
+param_grid = {'n_neighbors': np.arange(1, 31)}  # Try K values from 1 to 30
+knn = KNeighborsClassifier()
+grid_search = GridSearchCV(knn, param_grid, cv=5, scoring='accuracy')
+
+# Fit the model
+grid_search.fit(X_train, y_train)
+
+# Best K value
+best_k = grid_search.best_params_['n_neighbors']
+print(f'Optimal K value: {best_k}')
+
+# Step 8: Train the KNN model with the optimal K
+knn_optimal = KNeighborsClassifier(n_neighbors=best_k)
+knn_optimal.fit(X_train, y_train)
+
+# Step 9: Make predictions on the test set
+y_pred = knn_optimal.predict(X_test)
+
+# Step 10: Evaluate the model
+print(f'Accuracy: {accuracy_score(y_test, y_pred):.4f}')
+print('Confusion Matrix:')
+print(confusion_matrix(y_test, y_pred))
+print('Classification Report:')
+print(classification_report(y_test, y_pred))
+
+# Example new patient data: [pregnancies, glucose, blood pressure, skin thickness, insulin, BMI, diabetes pedigree function, age]
+
+# Note that this should have 8 features, not 9
+new_patient = np.array([[2, 89, 58, 33, 50, 72, 31.6, 0.349]])  # Corrected to 8 features
+
+# Normalize the new patient data using the same scaler that was fitted to the training data
+new_patient = scaler.transform(new_patient)  # Transform the new patient data
+
+# Prediction
+new_prediction = knn_optimal.predict(new_patient)
+print(f'Predicted Outcome for the new patient: {new_prediction[0]}')  # 0 = Not Diabetic, 1 = Diabetic
+
+
+
+
+
+
+
+
+
+
+
+#Q2
+# Import necessary libraries
+import pandas as pd
+from mlxtend.frequent_patterns import apriori, association_rules
+
+# 1. Load the dataset
+# Replace 'groceries.csv' with the path to your grocery dataset file
+groceries_data = pd.read_csv('groceries.csv')
+
+# Display the first few rows of the dataset
+print("First few rows of the dataset:")
+print(groceries_data.head())
+
+# 2. Preprocess the Data
+# Create a basket with each member's purchases
+basket = groceries_data.groupby(['Member_number', 'itemDescription'])['Date'].count().unstack().fillna(0)
+basket = basket.applymap(lambda x: 1 if x > 0 else 0)  # Convert counts to 1s and 0s
+
+# 3. Apply the Apriori Algorithm
+# Find frequent itemsets with a minimum support of 0.25
+frequent_itemsets = apriori(basket, min_support=0.25, use_colnames=True)
+
+# 4. Display the Results
+print("\nFrequent Itemsets with support >= 0.25:")
+print(frequent_itemsets)
+
+# 5. Generate Association Rules (optional)
+# Generate association rules if desired
+rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1)
+print("\nAssociation Rules:")
+print(rules)

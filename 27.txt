@@ -1,0 +1,79 @@
+#Q1
+#Q1
+from sklearn.datasets import fetch_california_housing
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+import pandas as pd
+
+# Step 1: Load California housing data
+california_housing = fetch_california_housing()
+
+# Convert to DataFrame
+df = pd.DataFrame(california_housing.data, columns=california_housing.feature_names)
+df['Price'] = california_housing.target  # Add target as 'Price'
+df
+X = df.drop('Price', axis=1)  # Features (all columns except 'Price')
+y = df['Price']  # Target (Price of the house)
+
+# Split data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 3: Create a Multiple Linear Regression model
+model = LinearRegression()
+
+# Train the model on the training data
+model.fit(X_train, y_train)
+
+# Step 4: Make predictions on the test data
+y_pred = model.predict(X_test)
+
+# Step 5: Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+print(f"Mean Squared Error: {mse:.2f}")
+
+# Step 6: Predict house price for a specific input (optional)
+# Example: Predict price for a house with specific feature values (you can modify this as needed)
+example_input = pd.DataFrame([[8.5, 0.0, 0.0, 3.5, 300, 30, 1.2, 1.0]], columns=X.columns)  # Modify with appropriate values
+predicted_price = model.predict(example_input)
+print(f"Predicted price for the example input: ${predicted_price[0]:.2f}")
+
+
+
+
+
+
+
+
+
+#Q2
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import r2_score
+df = pd.read_csv('Position_Salaries.csv')
+df
+df.head()
+df.info()
+df.describe()
+X = df[['Level']].values # Features (Level)
+y = df['Salary'].values # Target (Salary)
+lin_reg = LinearRegression()
+lin_reg.fit(X, y)
+y_pred_linear = lin_reg.predict(X)
+r2_linear = r2_score(y, y_pred_linear)
+
+print(f"R2 Score of Simple Linear Regression: {r2_linear}")
+plt.scatter(X, y, color='red', label='Actual data')
+plt.plot(X, y_pred_linear, color='blue', label='Linear Regression')
+plt.title('Salary vs. Level')
+plt.xlabel('Level')
+plt.ylabel('Salary')
+plt.legend()
+plt.show()
+levels_to_predict = np.array([[11], [12]])
+
+salary_pred_linear = lin_reg.predict(levels_to_predict)
+print(f"Linear Regression Predictions for Levels 11 and 12:{salary_pred_linear}")

@@ -1,0 +1,114 @@
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report,confusion_matrix
+
+# Step 2: Load the Dataset
+# The 20 newsgroups dataset is available in sklearn's datasets
+newsgroups = fetch_20newsgroups(subset='all')
+
+# Step 3: Preprocess the Data
+# Use TfidfVectorizer to convert text data to a matrix of token counts
+vectorizer = TfidfVectorizer(stop_words='english')
+X = vectorizer.fit_transform(newsgroups.data)
+y = newsgroups.target
+
+# Step 4: Split the Dataset into Training and Testing Sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
+random_state=42)
+
+# Step 5: Train the Multinomial Naïve Bayes Model
+model = MultinomialNB()
+model.fit(X_train, y_train)
+
+# Step 6: Evaluate the Model
+y_pred = model.predict(X_test)
+
+# Calculate the accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.4f}")
+
+# Print the classification report
+print("Classification Report:\n", classification_report(y_test, y_pred,
+target_names=newsgroups.target_names))
+
+# Print the confusion matrix
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+# Step 7: Predict News Category
+# Example news text
+news_text = ["The stock market is seeing a significant increase in pricesdue to new regulations."]
+news_text_transformed = vectorizer.transform(news_text)
+
+# Predict the category
+predicted_category = model.predict(news_text_transformed)
+predicted_category_name =newsgroups.target_names[predicted_category[0]]
+print(f"Predicted Category: {predicted_category_name}")
+
+
+
+
+
+
+
+
+#q2
+# Import necessary libraries
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn import tree
+
+# Create a sample dataset
+data = {
+    'Outlook': ['Sunny', 'Sunny', 'Overcast', 'Rain', 'Rain', 'Rain', 'Overcast', 'Sunny'],
+    'Temperature': ['Hot', 'Hot', 'Hot', 'Mild', 'Cool', 'Cool', 'Cool', 'Mild'],
+    'Humidity': ['High', 'High', 'High', 'High', 'Normal', 'Normal', 'Normal', 'High'],
+    'Windy': [False, True, False, False, False, True, True, False],
+    'Play': ['No', 'No', 'Yes', 'Yes', 'Yes', 'No', 'Yes', 'No']
+}
+df = pd.DataFrame(data)
+
+# Step 1: Convert categorical features into numeric format using one-hot encoding
+df_encoded = pd.get_dummies(df, columns=['Outlook', 'Temperature', 'Humidity', 'Windy'])
+
+# Step 2: Split the dataset into features and target
+X = df_encoded.drop(columns=['Play'])
+y = df['Play']
+
+# Step 3: Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Step 4: Train the Decision Tree model
+model = DecisionTreeClassifier(criterion="entropy", random_state=42)
+model.fit(X_train, y_train)
+
+# Step 5: Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Step 6: Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print("Model Performance:")
+print(f"Accuracy: {accuracy * 100:.2f}%")
+
+# Detailed classification report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Confusion Matrix
+conf_matrix = confusion_matrix(y_test, y_pred, labels=['Yes', 'No'])
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=['Yes', 'No'], yticklabels=['Yes', 'No'])
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Confusion Matrix for Decision Tree Classifier")
+plt.show()
+
+# Step 7: Visualize the Decision Tree
+plt.figure(figsize=(12,8))
+tree.plot_tree(model, feature_names=X.columns, class_names=['Yes', 'No'], filled=True, rounded=True)
+plt.title("Decision Tree Visualization for Playing Tennis")
+plt.show()

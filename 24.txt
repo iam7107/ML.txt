@@ -1,0 +1,118 @@
+#Q1
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+from sklearn import tree
+
+# Step 1: Load the dataset (Assuming the file is 'data_banknote_authentication.txt')
+# Specify the delimiter if the file is space-separated or comma-separated
+df = pd.read_csv('data_banknote_authentication.txt', delimiter=',', header=None,
+                 names=['Variance', 'Skewness', 'Curtosis', 'Entropy', 'Class'])
+df
+
+# Step 2: Check for missing values
+print("Missing values in each column:")
+print(df.isnull().sum())
+
+# Step 3: Check the data types of the columns
+print("\nData Types of Columns:")
+print(df.dtypes)
+
+# Step 4: Ensure all columns are of numeric type (except the target 'Class')
+df[['Variance', 'Skewness', 'Curtosis', 'Entropy']] = df[['Variance', 'Skewness', 'Curtosis', 'Entropy']].apply(pd.to_numeric, errors='coerce')
+
+# Step 5: Separate the features (X) and target variable (y)
+X = df.drop('Class', axis=1)  # Features
+y = df['Class']  # Target variable
+
+# Step 6: Split the dataset into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 7: Initialize the Decision Tree Classifier
+model = DecisionTreeClassifier(random_state=42)
+
+# Step 8: Train the model
+model.fit(X_train, y_train)
+
+# Step 9: Make predictions on the test data
+y_pred = model.predict(X_test)
+
+# Step 10: Evaluate the model's performance
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy * 100:.2f}%")
+
+# Confusion Matrix
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+# Classification Report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Step 11: Visualize the Decision Tree
+plt.figure(figsize=(12,8))
+tree.plot_tree(model, filled=True, feature_names=X.columns, class_names=['Genuine', 'Forged'], rounded=True)
+plt.title('Decision Tree Classifier Visualization')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Q2
+#Q2
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score
+
+# Step 1: Load the dataset
+df = pd.read_csv('UniversalBank.csv')
+df
+
+# Step 2: Data Preprocessing
+# Assuming 'Personal Loan' is the target variable and the rest are features
+# Drop columns that are not useful for prediction (e.g., 'ID' or 'ZIP Code')
+df = df.drop(columns=['ID', 'ZIP Code'])
+
+# If there are any categorical variables, you can encode them (this is an example)
+# df['Gender'] = df['Gender'].map({'Male': 0, 'Female': 1})
+
+# Separate features (X) and target variable (y)
+X = df.drop(columns=['Personal Loan'])  # Features
+y = df['Personal Loan']  # Target
+
+# Step 3: Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 4: Standardize the features (important for SVM)
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Step 5: Create and train the Linear SVM model
+model = SVC(kernel='linear')
+model.fit(X_train, y_train)
+
+# Step 6: Make predictions
+y_pred = model.predict(X_test)
+
+# Step 7: Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy * 100:.2f}%")
+
+# You can also print the coefficients of the linear model
+print("Model coefficients:", model.coef_)
+print("Intercept:", model.intercept_)

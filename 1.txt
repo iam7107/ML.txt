@@ -1,0 +1,56 @@
+# Import necessary libraries
+import pandas as pd
+from mlxtend.frequent_patterns import apriori, association_rules
+
+# 1. Load the dataset
+# Replace 'groceries.csv' with the path to your grocery dataset file
+groceries_data = pd.read_csv('groceries.csv')
+
+# Display the first few rows of the dataset
+print("First few rows of the dataset:")
+print(groceries_data.head())
+
+# 2. Preprocess the Data
+# Create a basket with each member's purchases
+basket = groceries_data.groupby(['Member_number', 'itemDescription'])['Date'].count().unstack().fillna(0)
+basket = basket.applymap(lambda x: 1 if x > 0 else 0)  # Convert counts to 1s and 0s
+
+# 3. Apply the Apriori Algorithm
+# Find frequent itemsets with a minimum support of 0.25
+frequent_itemsets = apriori(basket, min_support=0.25, use_colnames=True)
+
+# 4. Display the Results
+print("\nFrequent Itemsets with support >= 0.25:")
+print(frequent_itemsets)
+
+
+
+
+#q2
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+
+# Load the Iris dataset
+iris = load_iris()
+iris_df = pd.DataFrame(iris.data, columns=iris.feature_names)
+
+# Add the target variable and convert categorical values to numeric
+iris_df['species'] = iris.target
+
+# Map numeric values back to the species names
+species_map = dict(enumerate(iris.target_names))
+iris_df['species_name'] = iris_df['species'].map(species_map)
+
+# Print the dataset with numeric and categorical species names
+print(iris_df.head())
+
+# Scatter plot using seaborn
+sns.scatterplot(x='sepal length (cm)', y='sepal width (cm)', hue='species_name', data=iris_df, palette='viridis')
+plt.title('Scatter Plot of Sepal Length vs Sepal Width (Iris Dataset)')
+plt.xlabel('Sepal Length (cm)')
+plt.ylabel('Sepal Width (cm)')
+plt.legend(title='Species')
+plt.show()
+
